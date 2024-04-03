@@ -1,8 +1,8 @@
 import json
 from pydantic import BaseModel, Field
 from typing import Literal
-from .arupa_rule import ArupaRule
-from .frisco_rule import FriscoRule
+# from .arupa_rule import ArupaRule
+# from .frisco_rule import FriscoRule
 
 class PolicyExistError(Exception):
   pass
