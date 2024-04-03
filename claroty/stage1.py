@@ -36,9 +36,9 @@ class PolicyAPI:
       sort_keys=True, indent=2)
 
 
-  @property
-  def data(self):
-    return self._data
+  # @property
+  # def data(self):
+  #   return self._data
   
 
   @property

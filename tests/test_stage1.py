@@ -1,7 +1,7 @@
 import json
 
 import pytest
-from skeleton.stage1 import PolicyAPI
+from claroty.stage1 import PolicyAPI
 
 
 @pytest.fixture
