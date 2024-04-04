@@ -201,13 +201,13 @@ class PolicyAPI:
       if policy.name not in self._arupa_rules:
         raise PolicyExistError('policy {policy.name} not found')
 
-      return json.dumps([rule.asdict() for rule in self._arupa_rules[policy.name]])
+      return json.dumps([rule.asdict() for rule in self._arupa_rules[policy.name].values()])
   
     if policy.type == 'Frisco':
       if policy.name not in self._firsco_rules:
         raise PolicyExistError('policy {policy.name} not found')
       
-      return self._firsco_rules[policy.name]
+      return json.dumps(self._firsco_rules[policy.name].asdict())
     
 
   def _parse(self, name):

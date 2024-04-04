@@ -223,5 +223,44 @@ class TestDeleteRule:
       api.read_rule(json.dumps(frisco_foo_json))    
 
 
-class TestListRules:  
+class TestListRules:
+  def test_list_arupa_rules(self, api: PolicyAPI, arupa_foo_policy_identifier, arupa_bar_policy_identifier, arupa_foo_json, arupa_bar_json):
+    api.create_rule(arupa_foo_policy_identifier, json.dumps(arupa_foo_json)) 
+    api.create_rule(arupa_foo_policy_identifier, json.dumps(arupa_bar_json)) 
+
+    copy_arupa_foo_json = arupa_foo_json.copy()
+    copy_arupa_foo_json['ip_proto'] = 200
+
+    copy_arupa_bar_json = arupa_bar_json.copy()
+    copy_arupa_bar_json['ip_proto'] = 201
+
+    api.create_rule(arupa_bar_policy_identifier, json.dumps(arupa_foo_json)) 
+    api.create_rule(arupa_bar_policy_identifier, json.dumps(arupa_bar_json)) 
+
+    rules = json.loads(api.list_rules(arupa_foo_policy_identifier))
+    assert rules[0] == arupa_foo_json 
+    assert rules[1] == arupa_bar_json 
+
+
+  def test_list_frisco_rules(self, api: PolicyAPI, frisco_foo_policy_identifier, frisco_bar_policy_identifier, frisco_foo_json, frisco_bar_json):
+    api.create_rule(frisco_foo_policy_identifier, json.dumps(frisco_foo_json)) 
+    api.create_rule(frisco_foo_policy_identifier, json.dumps(frisco_bar_json)) 
+
+    rules = json.loads(api.list_rules(frisco_foo_policy_identifier))
+    assert rules == frisco_foo_json     
+
+    rules = json.loads(api.list_rules(frisco_bar_policy_identifier))
+    assert rules == frisco_bar_json
+    
+    frisco_foo_json['ip_proto'] = 200
+    frisco_bar_json['ip_proto'] = 201
+
+    api.create_rule(frisco_bar_policy_identifier, json.dumps(frisco_foo_json)) 
+    api.create_rule(frisco_bar_policy_identifier, json.dumps(frisco_bar_json)) 
+
+    rules = json.loads(api.list_rules(frisco_foo_policy_identifier))
+    assert rules == frisco_foo_json     
+
+    rules = json.loads(api.list_rules(frisco_bar_policy_identifier))
+    assert rules == frisco_bar_json
   
