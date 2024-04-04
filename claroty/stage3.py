@@ -1,10 +1,12 @@
 import json
 from pydantic import BaseModel, Field
 from typing import Literal
-# from .arupa_rule import ArupaRule
-# from .frisco_rule import FriscoRule
+from .rules import Rule, ArupaRule, FriscoRule
 
 class PolicyExistError(Exception):
+  pass
+
+class RuleNotFoundError(Exception):
   pass
 
 class Policy(BaseModel):
@@ -27,9 +29,10 @@ class Policy(BaseModel):
 
 class PolicyAPI:
   
-  def __init__(self) -> None:
+  def __init__(self) -> None:  
     self._policies = {}
-    pass    
+    self._arupa_rules = {}
+    self._firsco_rules = {}    
 
 
   def create_policy(self, json_input: str) -> str:
@@ -110,24 +113,102 @@ class PolicyAPI:
   
 
   def create_rule(self, json_policy_identifier: str, json_rule_input: str) -> str:
-      raise NotImplementedError
+    policy: Policy = Policy(**json.loads(json_policy_identifier))
+    rule = Rule.create(json_rule_input)
 
+    if rule.isArupa():
+      if policy.name not in self._arupa_rules:        
+        self._arupa_rules[policy.name] = { rule.name: rule }
+      else:
+        self._arupa_rules[policy.name][rule.name] = rule
 
+      return json.dumps(rule.asdict()) 
+    
+    if rule.isFrisco():
+      self._firsco_rules[rule.name] = rule
+      return json.dumps(rule.asdict())    
+
+    raise ValueError('illegal rule, should be arupa or firsco rule')
+  
+
+  """ rules of read_rule:
+  1. if input is of type arupa rule => rerurn all arupa rules thar are match to the name of input rule
+  2. if input is of type frisco rule => rerurn it from frisco_rule dictionary
+  """
   def read_rule(self, json_identifier: str) -> str:
-      raise NotImplementedError
+    rule = Rule.create(json_identifier)
 
+    if rule.isArupa():
+      rules = []
+
+      for policy_dict in self._arupa_rules.values():
+        if rule.name in policy_dict:
+          rules.append(policy_dict[rule.name].asdict())
+
+      if len(rules) == 0:
+        raise RuleNotFoundError('unable to find rule {rule.name}')
+
+      return json.dumps(rules)
+
+    if rule.isFrisco():
+      if rule.name not in self._firsco_rules:
+        raise RuleNotFoundError('unable to find rule {rule.name}')
+      
+      return json.dumps(self._firsco_rules[rule.name].asdict())
+    
 
   def update_rule(self, json_identifier: str, json_rule_input: str) -> None:
-      raise NotImplementedError
+    policy = Policy(**json.loads(json_identifier))
+    rule = Rule.create(json_rule_input)
 
+    if rule.isArupa():
+      if policy.name not in self._arupa_rules:
+        raise PolicyExistError('illegal policy, unable to find policy {policy.name}')    
+      
+      self._arupa_rules[policy.name][rule.name] = rule
+      return json.dumps(rule.asdict()) 
+    
+    if rule.isFrisco():
+      self._firsco_rules[rule.name] = rule
+      return json.dumps(rule.asdict())
 
-  def delete_rule(self, json_identifier: str) -> None:
-      raise NotImplementedError
+    raise ValueError('illegal rule, should be arupa or firsco rule')
 
+  """ delete_rule
+  1. if arupa delete rule by name from all policies
+  2. if frisco from from global rules  
+  """
+  def delete_rule(self, json_identifier: str) -> None:    
+    rule = Rule.create(json_identifier)
+
+    if rule.isArupa():
+      for policy_dict in self._arupa_rules.values():        
+        del policy_dict[rule.name]
+
+      return
+    
+    if rule.isFrisco():
+      del self._firsco_rules[rule.name]
+      return
+
+    raise ValueError('illegal rule, should be arupa or firsco rule')
+      
 
   def list_rules(self, json_policy_identifier: str) -> str:
-      raise NotImplementedError
+    policy = Policy(**json.loads(json_policy_identifier))    
+
+    if policy.type == 'Arupa':
+      if policy.name not in self._arupa_rules:
+        raise PolicyExistError('policy {policy.name} not found')
+
+      return json.dumps([rule.asdict() for rule in self._arupa_rules[policy.name]])
   
+    if policy.type == 'Frisco':
+      if policy.name not in self._firsco_rules:
+        raise PolicyExistError('policy {policy.name} not found')
+      
+      return self._firsco_rules[policy.name]
+    
 
   def _parse(self, name):
     return json.dumps(self.policies[name], default=lambda o: dict(o), 

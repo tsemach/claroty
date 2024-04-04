@@ -35,6 +35,14 @@ class ArupaRule(Rule, BaseModel):
   ip_proto: int = Field(gt=0, le=255)
   source_port: int = Field(gt=0, le=65536)
   source_subnet: InstanceOf[ipaddress.IPv4Network]
+
+  def asdict(self):
+    return {
+      "name": self.name,
+      "ip_proto": self.ip_proto,
+      "source_port": self.source_port,
+      "source_subnet": str(self.source_subnet)
+    }    
   
   
 class FriscoRule(Rule, BaseModel):   
@@ -44,3 +52,11 @@ class FriscoRule(Rule, BaseModel):
   source_ip: InstanceOf[ipaddress.IPv4Address]
   destination_ip: InstanceOf[ipaddress.IPv4Address]
   
+  def asdict(self):
+    return {
+      "name": self.name,
+      "ip_proto": self.ip_proto,
+      "source_port": self.source_port,
+      "source_ip": str(self.source_ip),
+      "destination_ip": str(self.destination_ip)
+    }    
