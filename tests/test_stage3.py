@@ -221,3 +221,7 @@ class TestDeleteRule:
 
     with pytest.raises(Exception):
       api.read_rule(json.dumps(frisco_foo_json))    
+
+
+class TestListRules:  
+  
