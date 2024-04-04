@@ -30,7 +30,6 @@ class PolicyAPI:
 
   def __init__(self) -> None:
     self._policies = {}
-    pass    
 
 
   def create_policy(self, json_input: str) -> str:
